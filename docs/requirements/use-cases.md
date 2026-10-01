@@ -2183,70 +2183,77 @@ Report generating algorithm: N/A
 
 ## **Peer Evaluation**
 
-### **UC-EVA-submit-evaluation: The student submits a peer evaluation for the previous week**
+### **z: The student submits a peer evaluation for the previous week**
 
-**UC ID and Name:** UC-EVA-submit-evaluation: Submit a peer evaluation for the previous week
+### **UC-SEC-nudge-non-submitter: The instructor sends a reminder to a student who has not submitted a required weekly artifact**
+
+**UC ID and Name:** UC-SEC-nudge-non-submitter: Send a reminder to a non-submitting student
 **Created By:**
 **Date Created:**
-**Primary Actor:** student
+**Primary Actor:** instructor
 **Secondary Actors:**
-**Trigger:** The student indicates to submit a peer evaluation for the previous week.
-**Description:** The student wants to submit a peer evaluation for the previous week, so that she can provide feedback and assessment for every team member.
+**Trigger:** The instructor indicates to send a reminder to a student who has not submitted a required weekly artifact.
+
+**Description:** The instructor wants to remind a student who has not submitted a required weekly artifact for the selected week, so that the student is prompted to complete the required submission.
 
 **Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is assigned to a team (BR-team-assignment-required).
+- PRE-1. The instructor is logged into the system.
+- PRE-2. The instructor has access to the course section containing the selected student (BR-section-scoped-access).
 
 **Postconditions:**
-- POST-1. The peer evaluation is stored in the system.
+- POST-1. A reminder is sent to the selected student for the required weekly artifact.
 
 **Main Success Scenario:**
-1. The student indicates to submit a peer evaluation for the previous week.
-2. The system asks the student to provide peer evaluations for every team member.
-3. See the "Details" defined in the Associated Information of this use case.
-4. The student evaluates each team member (self included) and confirms that she has finished.
-5. The system validates the student's inputs according to the "Details" defined in the Associated Information of this use case.
-6. The system displays the details of the peer evaluation and asks the student to confirm the evaluation and submission.
-7. The system notes that a submitted peer evaluation remains editable while its submission window is open; the student may re-submit it to update it until the window closes (BR-evaluation-editable-until-close, BR-evaluation-submission-window).
-8. The student either confirms the evaluation and submission (continues the normal flow) or chooses to modify the details (return to step 3).
-9. The system saves the peer evaluation and informs the student that this peer evaluation has been submitted.
-10. Use case ends.
+1. The instructor indicates to send a reminder to a student who has not submitted a required weekly artifact.
+2. The system asks the instructor to select the course section, week, student, and required weekly artifact.
+3. The instructor selects the course section, week, student, and required weekly artifact.
+4. The system determines whether the selected student is eligible to receive a reminder for the selected required weekly artifact and week according to the business rules.
+5. The system displays the reminder details and asks the instructor to confirm sending the reminder.
+6. The instructor confirms sending the reminder.
+7. The system sends the reminder to the selected student.
+8. The system informs the instructor that the reminder has been sent.
+9. Use case ends.
 
 **Extensions:**
-- **1a. The previous week is not one of the course section's active weeks** (e.g., the current week is the section's first active week, whose preceding week is inactive):
-  - 1a1. The system does not accept a peer evaluation for that week and informs the student that peer evaluations may be submitted only for the course section's active weeks (BR-active-weeks).
-  - 1a2. Use case ends.
-- **1b. The week to be evaluated is not the previous week, or its one-week submission window has closed:**
-  - 1b1. The system does not accept the peer evaluation and informs the student that a peer evaluation may be submitted only for the previous week, within its one-week window, and that a missed evaluation cannot be made up (BR-evaluation-submission-window).
-  - 1b2. Use case ends.
-- **1c. The student is not assigned to a team:**
-  - 1c1. The system does not accept a peer evaluation and informs the student that she must be assigned to a team before she can submit peer evaluations (BR-team-assignment-required).
-  - 1c2. Use case ends.
-- **4a. Input validation rule violation:**
-  - 4a1. The system alerts the student that an input validation rule is violated and displays the nature and location of the error.
-  - 4a2. The student corrects the mistake and returns to step 4 of the normal flow.
+- **4a. The student has already submitted the selected required weekly artifact:**
+  - 4a1. The system does not send a reminder and informs the instructor that the selected student has already submitted the required weekly artifact.
+  - 4a2. Use case ends.
+
+- **4b. The selected required weekly artifact cannot currently be submitted:**
+  - 4b1. The system does not send a reminder and informs the instructor that the selected required weekly artifact is not currently eligible for submission.
+  - 4b2. Use case ends.
+
+- **6a. The instructor cancels the reminder:**
+  - 6a1. The system does not send the reminder.
+  - 6a2. Use case ends.
+
+- **7a. The reminder cannot be sent:**
+  - 7a1. The system informs the instructor that the reminder could not be sent.
+  - 7a2. Use case ends.
 
 **Priority:** High
-**Frequency of Use:** Approximately 35-40 users, 1 usage per week.
-**Business Rules:** BR-team-scoped-access (the student evaluates the members of a team she belongs to, and no other team), BR-team-assignment-required (only a student assigned to a team submits one), BR-active-weeks, BR-evaluation-editable-until-close, BR-evaluation-submission-window, BR-evaluation-private-comment
+
+**Frequency of Use:** Approximately 2 users, average of 1 usage per week.
+
+**Business Rules:** BR-section-scoped-access, BR-nudge-non-submitter
 
 **Associated Information:**
 
 Details:
-- Every team member MUST be evaluated.
-- Scores MUST be integers.
 
-Example (each team member, self included, is evaluated on every rubric criterion):
+- Required weekly artifact: The instructor shall select whether the reminder concerns a Weekly Activity Report (WAR) or a peer evaluation.
+- Week: The reminder shall be associated with the selected week.
+- Student: The reminder shall identify the student who has not submitted the selected required weekly artifact.
+- Reminder: The reminder shall be sent to the selected student's registered email address.
 
-| student | Quality of work — How do you rate the quality of this teammate's work? (1-10) | … | Public comments | Private comments |
-| ---- | ---- | ---- | ---- | ---- |
-| John Doe | 8 | … | … | … |
-| Lily Fisher | 10 | … | … | … |
-| Tim Smith | 9 | … | … | … |
+The student is a non-submitter when the student has no submitted record for the selected required weekly artifact and week, subject to any submission-window rules applicable to that artifact.
 
-Private comments are for the instructor only. Public comments will be sent to the student under assessment. The student shall be able to cancel the use case at any time prior to submitting it.
+The instructor shall be able to cancel the use case at any time prior to sending the reminder.
+
+**Related Use Cases:** UC-WAR-team-war-report: Generate a WAR report of a team, UC-EVA-submit-evaluation: Submit a peer evaluation for the previous week
 
 **Assumptions:**
+
 **Open Issues:**
 
 ### **UC-EVA-view-own-evaluation: The student views her own peer evaluation report**

@@ -2208,53 +2208,72 @@ Report generating algorithm: N/A
 2. The system asks the instructor to select the course section, week, student, and required weekly artifact.
 3. The instructor selects the course section, week, student, and required weekly artifact.
 4. The system determines whether the selected student is eligible to receive a reminder for the selected required weekly artifact and week according to the business rules.
-5. The system displays the reminder details and asks the instructor to confirm sending the reminder.
+5. The system displays the student, course section, week, required weekly artifact, recipient email address, and reminder content and asks the instructor to confirm sending the reminder.
 6. The instructor confirms sending the reminder.
-7. The system sends the reminder to the selected student.
-8. The system informs the instructor that the reminder has been sent.
-9. Use case ends.
+7. The system rechecks that the selected student is still eligible to receive the reminder.
+8. The system sends the reminder to the selected student's registered email address.
+9. The system informs the instructor that the reminder has been sent.
+10. Use case ends.
 
 **Extensions:**
 - **4a. The student has already submitted the selected required weekly artifact:**
   - 4a1. The system does not send a reminder and informs the instructor that the selected student has already submitted the required weekly artifact.
   - 4a2. Use case ends.
 
-- **4b. The selected required weekly artifact cannot currently be submitted:**
-  - 4b1. The system does not send a reminder and informs the instructor that the selected required weekly artifact is not currently eligible for submission.
+- **4b. The student is not active or is not currently assigned to a team:**
+  - 4b1. The system does not send a reminder and informs the instructor that the selected student is not currently eligible to receive a reminder.
   - 4b2. Use case ends.
+
+- **4c. The selected week is not an active week for the course section:**
+  - 4c1. The system does not send a reminder because the selected artifact is not required for that week.
+  - 4c2. Use case ends.
+
+- **4d. The selected required weekly artifact cannot currently be submitted:**
+  - 4d1. The system does not send a reminder and informs the instructor that the selected required weekly artifact is not currently eligible for submission.
+  - 4d2. Use case ends.
+
+- **4e. The selected week is ineligible for the selected artifact:**
+  - 4e1. The system does not send a reminder and informs the instructor that the selected artifact cannot be submitted for the selected week.
+  - 4e2. Use case ends.
 
 - **6a. The instructor cancels the reminder:**
   - 6a1. The system does not send the reminder.
   - 6a2. Use case ends.
 
-- **7a. The reminder cannot be sent:**
-  - 7a1. The system informs the instructor that the reminder could not be sent.
+- **7a. The student is no longer eligible to receive the reminder:**
+  - 7a1. The system does not send the reminder and informs the instructor that the selected student is no longer eligible.
   - 7a2. Use case ends.
+
+- **8a. The reminder cannot be sent:**
+  - 8a1. The system informs the instructor that the reminder could not be sent.
+  - 8a2. Use case ends.
 
 **Priority:** High
 
 **Frequency of Use:** Approximately 2 users, average of 1 usage per week.
 
-**Business Rules:** BR-section-scoped-access, BR-nudge-non-submitter
+**Business Rules:** BR-section-scoped-access, BR-nudge-non-submitter, BR-team-assignment-required, BR-active-weeks, BR-evaluation-submission-window
 
 **Associated Information:**
 
 Details:
 
-- Required weekly artifact: The instructor shall select whether the reminder concerns a Weekly Activity Report (WAR) or a peer evaluation.
-- Week: The reminder shall be associated with the selected week.
-- Student: The reminder shall identify the student who has not submitted the selected required weekly artifact.
-- Reminder: The reminder shall be sent to the selected student's registered email address.
-
-The student is a non-submitter when the student has no submitted record for the selected required weekly artifact and week, subject to any submission-window rules applicable to that artifact.
-
-The instructor shall be able to cancel the use case at any time prior to sending the reminder.
+- Required weekly artifact: The instructor shall select whether the reminder concerns a Weekly Activity Report (WAR) or a peer evaluation. WARs and peer evaluations are evaluated separately for the selected student and week.
+- Week: The reminder shall be associated with the selected week. For a peer evaluation, the selected week is the week being evaluated and must satisfy the previous-week submission window. For a WAR, the selected week cannot be a future week.
+- Student: The reminder shall identify the student who has not submitted the selected required weekly artifact and is currently assigned to a team in the selected course section.
+- Reminder: The reminder shall be sent to the selected student's registered email address. The reminder shall identify the course section, selected artifact, selected week, and action the student should take to complete the submission.
+- Non-submitter: A student is a non-submitter when the student has no submitted record for the selected required weekly artifact and week, subject to the applicable submission rules.
+- Repeat reminders: The instructor may send another reminder for the same student, artifact, and week after a previous reminder has been sent.
+- Manual and scheduled reminders: An instructor-initiated reminder is separate from the scheduled reminder process and does not suppress or replace a scheduled reminder.
+- Cancellation: The instructor may cancel the use case at any point before the system begins sending the reminder.
+- Send result: A reminder is considered sent when the email service accepts the message for delivery; an email-service rejection is a failed send.
 
 **Related Use Cases:** UC-WAR-team-war-report: Generate a WAR report of a team, UC-EVA-submit-evaluation: Submit a peer evaluation for the previous week
 
 **Assumptions:**
 
 **Open Issues:**
+
 
 ### **UC-EVA-view-own-evaluation: The student views her own peer evaluation report**
 
@@ -4408,521 +4427,3 @@ File names include document type and team identifier.
 3. The instructor edits the criteria (the dimensions and standards the whole-project review checks across documents).
 4. The system validates and saves the updated criteria and confirms.
 5. Use case ends.
-
-**Extensions:**
-- **4a. The criteria are empty or invalid**
-  - 4a1. The system alerts the instructor that the criteria cannot be saved as entered and does not store them; the instructor corrects the input and returns to step 3.
-
-**Priority:** High
-**Frequency of Use:** Occasional; at course setup and periodic refinement.
-**Business Rules:** BR-section-config-access — Only an instructor assigned to the course section (including a course admin of its course) may view or edit its cross-document review criteria.
-**Associated Information:**
-- The cross-document review criteria are a course-section-level teaching artifact, distinct from the teaching context (UC-CFG-configure-teaching-context) and per-assistant assistant instructions (UC-CFG-configure-assistant-instructions); they govern the critique assistant's whole-project review mode (UC-AI-whole-project-review) specifically.
-- While the criteria are undefined for a course section, the whole-project review is unavailable to that course section's students (UC-AI-whole-project-review, PRE-4 and extension 1a).
-- The system-provided default the criteria are seeded from (main flow step 2) is maintained in `docs/product/cross-document-review-criteria.md` (the default criteria set + the critique assistant's whole-project-review system prompt).
-- The configured criteria are consumed by the critique assistant's whole-project review (UC-AI-whole-project-review), which includes them in its context and is unavailable until they are defined.
-
-**Related Use Cases:** UC-AI-whole-project-review: Request a whole-project review from the critique assistant; UC-CFG-configure-teaching-context: Configure the teaching context for a course section; UC-CFG-configure-assistant-instructions: Configure the assistant instructions for a course section.
-**Assumptions:**
-**Open Issues:**
-
-## **AI Assistants**
-
-### **UC-AI-import-source-material: The student imports client pitch materials as project source**
-
-**UC ID and Name:** UC-AI-import-source-material: Import client pitch materials as project source
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:**
-**Trigger:** The student indicates to import the client's pitch materials into the project.
-**Description:** At project kickoff the client pitches the project with materials such as a slide deck and a short PDF covering background, stakeholders, problem statement, users, objectives, desired functionality, possible solutions, prototypes, and a candidate tech stack. The student imports these into RAM as project source material so that the team and the AI assistants can reference them while eliciting and authoring requirements. The materials are inputs the team works from — not authored requirement content.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team that owns the project.
-
-**Postconditions:**
-- POST-1. The imported materials are stored as project source material for the team.
-- POST-2. The materials' content is available to the team and, where AI assistants are enabled, as context for those assistants.
-
-**Main Success Scenario:**
-1. The student indicates to import client pitch materials.
-2. The system asks the student to provide the files (e.g., a slide deck and a PDF).
-3. The student selects the files and confirms.
-4. The system validates the files against the supported formats and size limits.
-5. The system stores the files as project source material and extracts their text content so it can be referenced and supplied as context to the AI assistants.
-6. The system confirms that the materials are available to the team.
-7. Use case ends.
-
-**Extensions:**
-- **4a. A file is in an unsupported format or exceeds the size limit**
-  - 4a1. The system informs the student which file was rejected and why, and the student provides a different file or terminates the use case.
-- **5a. Text extraction is incomplete (e.g., an image-only or scanned PDF)**
-  - 5a1. The system stores the materials, informs the student that automatic text extraction was incomplete, and notes that assistant context from those materials may be limited.
-
-**Priority:** High
-**Frequency of Use:** Once per project at kickoff; occasionally updated when the client provides revised materials.
-**Business Rules:** BR-source-material-import — Only a member of the team that owns the project may import its project source material. Imported materials are project inputs, not authored requirement content, and are not themselves graded as requirements.
-**Associated Information:**
-- The elicitation assistant uses the imported materials for gap analysis and interview-question preparation (UC-AI-elicit-requirements); the critique and drafting assistants may use them as context.
-- Supported formats are PDF (`.pdf`) and PowerPoint (`.pptx`, `.ppt`); the per-file size limit is system-configurable (default 25 MB).
-- Honors FR-AI-source-material-context; the upload allowlist and text extraction are specified by SI-import-allowlist and SI-import-extraction.
-
-**Related Use Cases:** UC-AI-elicit-requirements: Elicit requirements with the elicitation assistant; UC-AI-structure-notes: Turn meeting notes into structured requirements.
-**Assumptions:**
-**Open Issues:**
-
-### **UC-AI-elicit-requirements: The student elicits requirements with the elicitation assistant**
-
-**UC ID and Name:** UC-AI-elicit-requirements: Elicit requirements with the elicitation assistant
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:** Elicitation assistant (realized via the LLM Service)
-**Trigger:** The student indicates to start an elicitation session ("Help me elicit") with the elicitation assistant to prepare for or work through a discussion with the client.
-**Description:** The student usually does not yet have the requirements — the knowledge lives with a client who is typically non-technical and is not present in the system. The student wants the elicitation assistant to coach her through eliciting requirements from that client: helping her formulate the right questions to ask, plan follow-up questions, and verify the client's answers (spotting vagueness, contradictions, and gaps that warrant another round). The assistant is deliberately Socratic — it coaches the student's own questioning and does not invent requirements or author content. Once the client's input is clarified and verified, the student returns to the system and drafts the content herself. This use case serves two scopes: a **broad, project-wide** session — typically the first one, run right after importing the client's pitch materials (UC-AI-import-source-material) with no authoring destination selected, to prepare for the first elicitation workshop — and a **focused, per-authoring-destination** session, run while eliciting for a particular authoring destination (a document section or a use case) so that the assistant has context for what she is trying to elicit. The two scopes differ only in what the assistant is grounded in; the coaching loop is the same.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team.
-- PRE-3. The elicitation assistant is enabled for the student's course section (see UC-CFG-toggle-assistants).
-
-**Postconditions:**
-- POST-1. An elicitation dialog (the assistant's coaching, and the questions and client answers the student worked through) is recorded for the session.
-- POST-2. No requirement content is authored by the assistant; any requirements the student captures are drafted by her through the relevant authoring use cases.
-
-**Main Success Scenario:**
-1. The student starts an elicitation session for a particular authoring destination — a document section or a use case.
-2. The system gathers the authoring destination's content and template context, the imported project source material, and the course section's teaching context.
-3. The system asks the elicitation assistant, via the LLM Service, to analyze the gaps between the authoring destination and its template and to propose client-interview questions for them, phrased in plain, non-technical language.
-4. The system presents the assistant's suggested questions and follow-up strategies to the student.
-5. The student conducts the discussion with the client outside the system and brings the client's answers back into the session.
-6. The student shares the client's answers with the assistant; the assistant helps her verify them — flagging vague, ambiguous, or contradictory answers and proposing follow-up questions for the next round.
-7. The student repeats the discuss-and-verify loop (returns to step 4) until the client's input is clear and complete enough to author.
-8. Once the client's input is verified, the student returns to the system and drafts the content herself through UC-DOC-edit-document: Edit a section-based requirement document (or UC-DOC-edit-use-case: Edit a use case), optionally translating her verified notes into candidate requirements through UC-AI-structure-notes: Turn meeting notes into structured requirements.
-9. Use case ends.
-
-**Extensions:**
-- **1a. The student runs a broad, project-wide session (e.g., first-workshop prep after the pitch import)**
-  - 1a1. The student starts the session without selecting an authoring destination.
-  - 1a2. The system gathers the project's current requirements coverage across its documents and sections in place of a single authoring destination's context.
-  - 1a3. The system asks the elicitation assistant, via the LLM Service, to perform a gap analysis comparing that coverage against what a complete set requires.
-  - 1a4. The scenario continues from step 4.
-- **1b. The imported pitch materials have gone stale and the student excludes them for the session**
-  - 1b1. The system grounds the session only on the team's current drafted requirements, omitting the project source material from the assistant's context, and the scenario continues.
-- **3a. The elicitation assistant is disabled for the course section**
-  - 3a1. The system informs the student that the elicitation assistant is unavailable and terminates the use case.
-- **3b. The LLM Service is unavailable or times out**
-  - 3b1. The system informs the student that AI assistance is temporarily unavailable and that the rest of RAM continues to operate, and terminates the use case.
-- **4a. The student has already drafted a list of questions and wants them reviewed**
-  - 4a1. The student submits her drafted questions; the assistant reviews them, flags technical jargon, and suggests plain-language phrasings suited to a non-technical client, each with a rationale. The student revises her questions herself, optionally accepting a suggested phrasing through UC-AI-review-proposal: Review and accept or reject an assistant proposal, then returns to step 4.
-- **4b. The student wants to rehearse the interview before meeting the client**
-  - 4b1. The student practices through UC-AI-practice-interview: Practice a client interview with a role-playing client assistant, then returns to step 5.
-- **5a. The student can resolve the assistant's questions without a new client conversation**
-  - 5a1. Using her existing knowledge and the imported project source material, the student answers the assistant's questions directly and proceeds to draft the content (step 8) — the common case for a focused, per-document-section "help me elicit" while authoring.
-- **6a. The student asks the assistant to draft the requirements from the answers**
-  - 6a1. Per the assistant's configured Socratic behavior, the system declines to author finished requirements and instead helps the student structure her own draft (optionally via UC-AI-structure-notes), returning to step 8.
-
-**Priority:** High
-**Frequency of Use:** A broad, project-wide session typically once at the start, right after the pitch import, to prepare the first elicitation workshop; thereafter frequent, focused per-authoring-destination sessions throughout the elicitation-heavy phase, before and between client meetings.
-**Business Rules:** BR-assistant-enablement, BR-assistant-socratic, BR-authored-prevails — The elicitation assistant shall be Socratic — it shall coach the student's questioning, follow-up, and verification rather than author requirements for her. The assistant must be enabled for the course section (UC-CFG-toggle-assistants). The system shall not author or modify student content with assistant-generated text without explicit confirmation. Real clients are not participants in the system. The project source material is a kickoff input that may become stale; where it conflicts with later authored-and-verified requirements, the authored content prevails, and the assistant shall not treat the imported pitch materials as authoritative over the team's current, verified requirements. The student may exclude the project source material from the assistant's grounding for a session, directing the assistant to rely only on the current drafted requirements.
-**Associated Information:**
-- Educational intent: the assistant trains the student to elicit from and communicate with a non-technical client and to verify client input — core skills this version teaches; productivity is deliberately subordinated to learning.
-- Real clients are deliberately kept out of the system; the client discussion happens off-platform. The student can rehearse it against a simulated client through UC-AI-practice-interview.
-- The assistant grounds its gap analysis in the imported project source material (UC-AI-import-source-material) when available and not excluded for the session, and draws on the teaching context configured for the course section (UC-CFG-configure-teaching-context).
-- The imported pitch materials are a starting snapshot that rots as the project evolves; in the broad, project-wide mode the assistant grounds its gap analysis increasingly in the project's current requirements coverage, and flags when a gap or assumption rests only on the (possibly stale) pitch so the student knows to re-verify with the client. Later in the project the student can exclude the pitch entirely for a session and elicit against the drafted requirements alone.
-- Reviewing the student's own draft questions — flagging technical jargon and suggesting plain-language phrasings with rationale — is part of this coaching, so the student learns to communicate with a non-technical client.
-- All calls to the LLM Service are routed through the server-side AI proxy.
-- Honors FR-AI-no-auto-edit, FR-AI-degradation, FR-AI-source-material-context.
-
-**Related Use Cases:** UC-AI-practice-interview: Practice a client interview with a role-playing client assistant; UC-AI-structure-notes: Turn meeting notes into structured requirements; UC-AI-consult-project-assistant: Consult the project assistant; UC-DOC-edit-document: Edit a section-based requirement document; UC-DOC-edit-use-case: Edit a use case; UC-CFG-configure-teaching-context: Configure the teaching context for a course section; UC-CFG-toggle-assistants: Enable or disable AI assistants for a course section.
-**Assumptions:**
-**Open Issues:**
-
-### **UC-AI-practice-interview: The student practices a client interview with a role-playing client assistant**
-
-**UC ID and Name:** UC-AI-practice-interview: Practice a client interview with a role-playing client assistant
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:** Client Role-Play assistant (realized via the LLM Service)
-**Trigger:** The student indicates to start a practice client-interview session.
-**Description:** The student wants to practice interviewing a non-technical client by conversing with an assistant that role-plays a client who gives vague, non-technical, and sometimes contradictory answers — so that the student practices extracting requirements from realistic, imperfect client input. This supports the educational goal of teaching client communication without putting a real client in the system.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team.
-- PRE-3. The client role-play assistant is enabled for the student's course section (see UC-CFG-toggle-assistants).
-
-**Postconditions:**
-- POST-1. A practice interview transcript is recorded for the session.
-- POST-2. The session is a practice exercise on a fictional scenario; it produces no requirement content and contributes nothing to the team's real requirements.
-
-**Main Success Scenario:**
-1. The student indicates to start a practice client-interview session, optionally selecting a scenario.
-2. The system asks the client role-play assistant, via the LLM Service, to adopt the persona of a non-technical client for the selected scenario, using the teaching context for the scenario and grading standards.
-3. The student asks the simulated client a question.
-4. The client role-play assistant responds in character — in plain, non-technical language that may be vague or contradictory.
-5. The student continues the interview (returns to step 3), probing and clarifying, and optionally records notes.
-6. The student ends the session and reviews the recorded transcript and her notes to reflect on her interviewing technique.
-7. Use case ends.
-
-**Extensions:**
-- **2a. The client role-play assistant is disabled for the course section**
-  - 2a1. The system informs the student that the assistant is unavailable and terminates the use case.
-- **2b. The LLM Service is unavailable or times out**
-  - 2b1. The system informs the student that AI assistance is temporarily unavailable and terminates the use case.
-
-**Priority:** Low
-**Frequency of Use:** Periodic; tied to client-communication exercises.
-**Business Rules:** BR-assistant-enablement, BR-assistant-socratic — The client role-play assistant shall stay in the non-technical client persona and shall not author requirements for the student. The assistant must be enabled for the course section (UC-CFG-toggle-assistants).
-**Associated Information:**
-- Educational goal: train client communication without putting real clients in the system.
-- The assistant draws on the teaching context for the scenario and the standards being taught.
-- The practice runs on a fictional scenario: nothing the simulated client says is real project input, and the session yields no requirement content for the team's project. Its value is the interviewing skill the student builds before the real elicitation (UC-AI-elicit-requirements) — it is deliberately not wired to the structuring use case (UC-AI-structure-notes), which is for real client-meeting notes.
-- Honors FR-AI-degradation.
-
-**Related Use Cases:** UC-AI-elicit-requirements: Elicit requirements with the elicitation assistant; UC-CFG-toggle-assistants: Enable or disable AI assistants for a course section.
-**Assumptions:**
-**Open Issues:**
-
-### **UC-AI-structure-notes: The student turns meeting notes into structured requirements**
-
-**UC ID and Name:** UC-AI-structure-notes: Turn meeting notes into structured requirements
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:** Structuring assistant (realized via the LLM Service)
-**Trigger:** The student indicates to turn plain-language meeting notes into structured requirements.
-**Description:** The student wants an assistant to help translate her plain-language client-meeting notes into structured requirements (e.g., candidate use cases, business rules, or functional requirements) so that she learns the translation from informal client language to structured requirements. The assistant proposes candidates; the student inspects and accepts or rejects each, and remains the author. Because a single set of notes usually yields several kinds of requirement, the candidates target different authoring destinations — a document section of a section-based requirement document (either narrative text such as Background or Introduction, or a requirement-artifact list such as Risks, Objectives, or functional requirements), or a use case in the Use Cases document, which is an artifact in its own right and not a document section — and each accepted candidate is applied to its authoring destination.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team that owns the content.
-- PRE-3. The structuring assistant is enabled for the student's course section (see UC-CFG-toggle-assistants).
-- PRE-4. The student has plain-language notes to translate.
-
-**Postconditions:**
-- POST-1. Candidate structured requirements are proposed; only those the student explicitly accepts become artifacts she authors.
-
-**Main Success Scenario:**
-1. The student provides her plain-language meeting notes and indicates to translate them.
-2. The system gathers relevant context (the authoring destination templates, related glossary terms, and the teaching context).
-3. The system asks the structuring assistant, via the LLM Service, to propose candidate structured requirements from the notes — each identifying its authoring destination (a document section, or a use case in the Use Cases document) and the note it derives from.
-4. The structuring assistant returns the candidate requirements, organized by their authoring destinations — document sections and use cases alike (a single set of notes typically spans several).
-5. The student reviews and accepts or rejects each candidate through UC-AI-review-proposal: Review and accept or reject an assistant proposal.
-6. For each accepted candidate, the system applies it to its authoring destination as a draft the student authors — which requires her to hold that authoring destination's lock (a document section via UC-DOC-edit-document, or a use case via UC-DOC-edit-use-case) — and she refines and completes it through UC-DOC-create-use-case: Create a use case or UC-ART-create-artifact: Create a requirement artifact.
-7. Use case ends.
-
-**Extensions:**
-- **2a. The structuring assistant is disabled for the course section**
-  - 2a1. The system informs the student that the assistant is unavailable and terminates the use case.
-- **3a. The LLM Service is unavailable or times out**
-  - 3a1. The system informs the student that AI assistance is temporarily unavailable and terminates the use case.
-- **4a. The notes contain nothing the assistant can structure (e.g., too sparse or off-topic)**
-  - 4a1. The system tells the student that no candidates were produced and suggests adding detail or eliciting more from the client (UC-AI-elicit-requirements); the use case ends.
-- **6a. A candidate's authoring destination is locked by another team member**
-  - 6a1. A candidate whose authoring destination — a document section or a use case — is held locked by another member cannot be applied until the lock is released; it remains pending while the student applies the candidates whose authoring destinations she can lock.
-
-**Priority:** High
-**Frequency of Use:** Periodic; after a real client meeting.
-**Business Rules:** BR-assistant-socratic, BR-explicit-acceptance — Candidate requirements shall be applied only through the explicit acceptance loop of UC-AI-review-proposal (no "accept all"). The assistant must be enabled for the course section (UC-CFG-toggle-assistants). Each candidate shall show the note it derives from as rationale. An accepted candidate shall be applied to its authoring destination — a document section (UC-DOC-edit-document) or a use case (UC-DOC-edit-use-case) — and is subject to that authoring destination's lock; a candidate whose authoring destination is locked by another team member shall not be applied until the lock is released.
-**Associated Information:**
-- Teaches the translation from informal client language to structured requirements.
-- The meeting notes are the student's own notes from a real client interaction (typically the off-platform interview she prepared for via UC-AI-elicit-requirements) — transient input provided for this session, not project source material (UC-AI-import-source-material) and not stored or graded as requirement content. Practice-interview notes (UC-AI-practice-interview) are fictional and are deliberately not used here.
-- This use case **structures** verified notes into candidate requirements; it is distinct from the **verification** the elicitation assistant performs in UC-AI-elicit-requirements (step 6), which checks the client's raw answers for clarity, consistency, and completeness. The normal order is verify first (UC-AI-elicit-requirements), then structure the verified notes here.
-- Each accepted candidate is applied through UC-AI-review-proposal as the student's own authored edit (recorded as hers, with provenance), then refined by her — the assistant never silently writes content.
-- Honors FR-AI-rationale, FR-AI-no-auto-edit, FR-AI-degradation; per-item acceptance via UC-AI-review-proposal (BR-explicit-acceptance).
-
-**Related Use Cases:** UC-AI-elicit-requirements: Elicit requirements with the elicitation assistant; UC-AI-review-proposal: Review and accept or reject an assistant proposal; UC-DOC-edit-document: Edit a section-based requirement document; UC-DOC-create-use-case: Create a use case; UC-DOC-edit-use-case: Edit a use case; UC-ART-create-artifact: Create a requirement artifact; UC-CFG-toggle-assistants: Enable or disable AI assistants for a course section.
-**Assumptions:**
-**Open Issues:**
-
-### **UC-AI-critique: The student requests a critique from the critique assistant**
-
-**UC ID and Name:** UC-AI-critique: Request a critique from the critique assistant
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:** Critique assistant (realized via the LLM Service)
-**Trigger:** The student indicates to request an assistant critique of the currently selected document section or use case.
-**Description:** The student wants the critique assistant to evaluate an authored document section or use case for clarity, ambiguity, consistency, completeness, and testability, and to explain why each issue weakens the requirements — so that the student can improve it herself. The critique is qualitative, rationale-rich feedback that complements, and is distinct from, the deterministic ReqLint validation in UC-VAL-run-validation. The assistant's rationale is itself the lesson.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team that owns the requirement document.
-- PRE-3. The critique assistant is enabled for the student's course section (see UC-CFG-toggle-assistants).
-- PRE-4. A document section or a use case is selected and has authored content.
-
-**Postconditions:**
-- POST-1. A critique (findings with rationale) is generated and displayed, visually distinguished from student-authored content.
-- POST-2. No content is modified by the assistant.
-
-**Main Success Scenario:**
-1. The student indicates to request a critique of the selected item (a document section or a use case).
-2. The system gathers the selected item's content and relevant context (its type, template guidance, related glossary terms, and the teaching context).
-3. The system asks the critique assistant, via the LLM Service, to evaluate the selected item.
-4. The critique assistant returns findings, each with a category (e.g., clarity, ambiguity, consistency, completeness, testability) and an instructive rationale explaining why it weakens the requirement.
-5. The system presents the findings to the student, visually distinguished from authored content, each linked to the relevant location in the document section or use case.
-6. The student reviews a finding, navigates to the location, and revises the document section or use case herself through UC-DOC-edit-document: Edit a section-based requirement document (or UC-DOC-edit-use-case: Edit a use case).
-7. Use case ends.
-
-**Extensions:**
-- **3a. The critique assistant is disabled for the course section**
-  - 3a1. The system informs the student that the critique assistant is unavailable and terminates the use case.
-- **3b. The LLM Service is unavailable or times out**
-  - 3b1. The system informs the student that AI assistance is temporarily unavailable and terminates the use case.
-- **4a. The critique assistant proposes a concrete rewrite for a finding**
-  - 4a1. The student reviews and accepts or rejects the proposed rewrite through UC-AI-review-proposal: Review and accept or reject an assistant proposal.
-
-**Priority:** High
-**Frequency of Use:** Frequent; typically after drafting and before submission.
-**Business Rules:** BR-assistant-socratic, BR-explicit-acceptance — Every critique finding shall include an instructive rationale. The critique assistant must be enabled for the course section (UC-CFG-toggle-assistants). The assistant shall not modify student-authored content without explicit confirmation (UC-AI-review-proposal). Critique is advisory and distinct from ReqLint validation (UC-VAL-run-validation).
-**Associated Information:**
-- Critique evaluates against the standards encoded in the teaching context (e.g., INVEST, testability, Wiegers categories).
-- Distinct from UC-VAL-run-validation (ReqLint): ReqLint is deterministic rule-checking; critique is qualitative assistant feedback that complements it.
-- Requesting a critique is read-only — it neither locks nor modifies the selected item. Acting on a finding changes content only through the normal path: a manual revision (UC-DOC-edit-document / UC-DOC-edit-use-case) or an accepted rewrite (extension 4a) via UC-AI-review-proposal, each subject to the selected item's lock.
-- Honors FR-AI-rationale, FR-AI-no-auto-edit, FR-AI-distinguish-suggestions, FR-AI-degradation.
-
-**Related Use Cases:** UC-VAL-run-validation: Run validation (ReqLint) on the current document; UC-AI-review-proposal: Review and accept or reject an assistant proposal; UC-DOC-edit-document: Edit a section-based requirement document; UC-DOC-edit-use-case: Edit a use case; UC-CFG-configure-teaching-context: Configure the teaching context for a course section; UC-CFG-toggle-assistants: Enable or disable AI assistants for a course section.
-**Assumptions:**
-**Open Issues:**
-
-### **UC-AI-tutor: The student asks an assistant to explain a concept (Tutor Mode)**
-
-**UC ID and Name:** UC-AI-tutor: Ask an assistant to explain a concept (Tutor Mode)
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:** Tutor assistant (realized via the LLM Service)
-**Trigger:** The student indicates to ask the tutor assistant to explain a concept, a glossary term, or a flagged issue.
-**Description:** The student wants the tutor assistant to explain a requirements-engineering concept, a glossary term, or a flagged issue (a ReqLint validation finding or a critique finding) — including, for a flagged issue, the rule that was violated and a suggested fix — so that she learns while authoring. Tutor Mode is purely educational; it does not modify content.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team.
-- PRE-3. The tutor assistant is enabled for the student's course section (see UC-CFG-toggle-assistants).
-
-**Postconditions:**
-- POST-1. An explanation is generated and displayed; no content is modified.
-
-**Main Success Scenario:**
-1. The student selects what to explain — a concept, a glossary term, or a flagged ReqLint/critique issue — and asks the tutor assistant for an explanation.
-2. The system gathers the relevant context (the selected item, related glossary terms, and the teaching context; for a flagged issue, the rule involved).
-3. The system asks the tutor assistant, via the LLM Service, for an explanation.
-4. The tutor assistant returns an instructive explanation; for a flagged issue, it describes the rule that was violated and a suggested fix.
-5. The system displays the explanation in the AI panel.
-6. The student optionally asks a follow-up question (returns to step 3).
-7. Use case ends.
-
-**Extensions:**
-- **3a. The tutor assistant is disabled for the course section**
-  - 3a1. The system informs the student that the tutor assistant is unavailable and terminates the use case.
-- **3b. The LLM Service is unavailable or times out**
-  - 3b1. The system informs the student that AI assistance is temporarily unavailable and terminates the use case.
-
-**Priority:** High
-**Frequency of Use:** Frequent; on demand while authoring or reviewing validation results.
-**Business Rules:** BR-assistant-socratic — Tutor Mode shall not modify student-authored content. The tutor assistant must be enabled for the course section (UC-CFG-toggle-assistants). For a flagged validation issue, the explanation shall identify the rule violated and a suggested fix.
-**Associated Information:**
-- The tutor draws on the teaching context so explanations match the standards the student is graded against.
-- Honors FR-AI-degradation.
-
-**Related Use Cases:** UC-VAL-run-validation: Run validation (ReqLint) on the current document; UC-GLO-view-term: View a glossary term; UC-AI-critique: Request a critique from the critique assistant; UC-CFG-configure-teaching-context: Configure the teaching context for a course section; UC-CFG-toggle-assistants: Enable or disable AI assistants for a course section.
-**Assumptions:**
-**Open Issues:**
-
-### **UC-AI-draft-skeleton: The student generates a draft requirement skeleton with an assistant**
-
-**UC ID and Name:** UC-AI-draft-skeleton: Generate a draft requirement skeleton with an assistant
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:** Drafting assistant (realized via the LLM Service)
-**Trigger:** The student indicates to generate a draft skeleton for a use case or a set of requirements from a short prompt.
-**Description:** The student wants the drafting assistant to produce a draft structural skeleton — for example, an empty use-case template with candidate step placeholders, or a set of candidate functional-requirement stubs — that gives her a starting structure to refine. Because handing students polished requirements undercuts the educational goal, this assistant is disabled by default for a course section and produces scaffolding and clearly-marked candidates rather than finished content; it is intended primarily for the secondary, future real-developer audience, for whom it can be enabled.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team that owns the content.
-- PRE-3. The drafting assistant is enabled for the student's course section (see UC-CFG-toggle-assistants). It is disabled by default in course use.
-
-**Postconditions:**
-- POST-1. A draft skeleton is proposed; nothing is added to the student's content except through explicit acceptance.
-
-**Main Success Scenario:**
-1. The student indicates to generate a draft skeleton and provides a short prompt or selects the authoring destination (e.g., a new use case, or requirements for a feature).
-2. The system gathers relevant context (the authoring destination template, related glossary terms, and the teaching context).
-3. The system asks the drafting assistant, via the LLM Service, to produce a structural skeleton with candidate placeholders.
-4. The drafting assistant returns the proposed skeleton.
-5. The student reviews and accepts or rejects the proposal through UC-AI-review-proposal: Review and accept or reject an assistant proposal.
-6. The accepted skeleton is applied as a draft on acceptance in step 5; the student then refines and completes it herself, authoring it out through UC-DOC-create-use-case: Create a use case (or UC-DOC-edit-use-case / UC-ART-create-artifact).
-7. Use case ends.
-
-**Extensions:**
-- **3a. The drafting assistant is disabled for the course section**
-  - 3a1. The system informs the student that the drafting assistant is unavailable and terminates the use case.
-- **3b. The LLM Service is unavailable or times out**
-  - 3b1. The system informs the student that AI assistance is temporarily unavailable and terminates the use case.
-
-**Priority:** Low
-**Frequency of Use:** Occasional; primarily in real-developer use rather than course use.
-**Business Rules:** BR-assistant-enablement, BR-assistant-socratic, BR-explicit-acceptance — The drafting assistant shall be disabled by default for a course section and is enabled only through UC-CFG-toggle-assistants. Proposed content shall be applied only through the explicit acceptance loop of UC-AI-review-proposal (no "accept all"). The assistant shall produce scaffolding and clearly-marked candidates, not silently inserted finished content.
-**Associated Information:**
-- Educational tiebreaker: in course use this assistant is off by default so that students structure their own work; it exists chiefly for the secondary, future real-developer audience.
-- Honors FR-AI-no-auto-edit, FR-AI-distinguish-suggestions, FR-AI-enablement, FR-AI-degradation; per-item acceptance via UC-AI-review-proposal (BR-explicit-acceptance); governed by UC-CFG-toggle-assistants.
-
-**Related Use Cases:** UC-DOC-create-use-case: Create a use case; UC-ART-create-artifact: Create a requirement artifact; UC-AI-review-proposal: Review and accept or reject an assistant proposal; UC-CFG-toggle-assistants: Enable or disable AI assistants for a course section.
-**Assumptions:**
-**Open Issues:**
-
-### **UC-AI-review-proposal: The student reviews and accepts or rejects an assistant proposal**
-
-**UC ID and Name:** UC-AI-review-proposal: Review and accept or reject an assistant proposal
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:** The proposing assistant (realized via the LLM Service)
-**Trigger:** An assistant has produced a concrete proposal (a draft, rewrite, or set of candidate artifacts) and the student indicates to review it.
-**Description:** Whenever an assistant proposes concrete content — a skeleton (UC-AI-draft-skeleton), a rewrite (UC-AI-critique), or structured requirements from notes (UC-AI-structure-notes) — the student must inspect the proposal against its rationale and consciously accept or reject it before any change is made to her content. This propose → inspect → accept loop is a deliberate teaching instrument: it forces the student to read the diff, understand the rationale, and make a decision. There is intentionally no "accept all" shortcut. This use case captures that shared loop; the proposing use cases invoke it.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team that owns the content.
-- PRE-3. An assistant has produced a proposal for review.
-
-**Postconditions:**
-- POST-1. Each proposed change is either accepted (and applied to its authoring destination as the student's authored content) or rejected (and discarded); no proposed change is applied without an explicit per-item acceptance.
-
-**Main Success Scenario:**
-1. The system presents the assistant's proposal as a set of discrete proposed changes — each targeting an authoring destination (a document section or a use case) — accompanied by the assistant's rationale and shown against that authoring destination's current content, visually distinguished from student-authored content.
-2. The student inspects a proposed change and its rationale.
-3. The student explicitly accepts or rejects that change.
-4. On acceptance, the system applies the change to its authoring destination as authored content (recorded as the student's edit), which requires the student to hold that authoring destination's lock (a document section via UC-DOC-edit-document, or a use case via UC-DOC-edit-use-case). On rejection, the system discards the change.
-5. The student repeats steps 2–4 for each proposed change.
-6. Use case ends.
-
-**Extensions:**
-- **1a. The student dismisses the entire proposal**
-  - 1a1. The system discards all proposed changes; no content is modified; the use case ends.
-- **2a. The student requests an explanation of a proposed change**
-  - 2a1. The student asks the tutor assistant to explain through UC-AI-tutor: Ask an assistant to explain a concept, then returns to step 2.
-- **4a. A change's authoring destination is locked by another team member**
-  - 4a1. The system cannot apply that change until the lock is released; it remains pending while the student accepts, rejects, and applies the changes whose authoring destinations she can lock.
-
-**Priority:** High
-**Frequency of Use:** Whenever a generative assistant produces a proposal.
-**Business Rules:** BR-assistant-socratic, BR-explicit-acceptance — The system shall not apply assistant-generated content without an explicit, per-item acceptance by the student. The system shall not provide an "accept all" shortcut. Each proposed change shall be shown with its rationale and visually distinguished until accepted. A change shall be applied only to its authoring destination — a document section (UC-DOC-edit-document) or a use case (UC-DOC-edit-use-case) — and only while the student holds that authoring destination's lock.
-**Associated Information:**
-- The friction in this loop is pedagogically intentional and shall not be optimized away.
-- Specifies the per-item acceptance rule of BR-explicit-acceptance (no "accept all"); honors FR-AI-no-auto-edit, FR-AI-distinguish-suggestions.
-
-**Related Use Cases:** UC-AI-critique: Request a critique from the critique assistant; UC-AI-draft-skeleton: Generate a draft requirement skeleton with an assistant; UC-AI-structure-notes: Turn meeting notes into structured requirements; UC-AI-tutor: Ask an assistant to explain a concept (Tutor Mode); UC-DOC-edit-document: Edit a section-based requirement document; UC-DOC-edit-use-case: Edit a use case.
-**Assumptions:**
-**Open Issues:**
-
-### **UC-AI-consult-project-assistant: The student consults the project assistant**
-
-**UC ID and Name:** UC-AI-consult-project-assistant: Consult the project assistant
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:** Project assistant (realized via the LLM Service)
-**Trigger:** The student opens the project assistant in the project workspace and asks for help (for example, "Where should I start?", "What's missing?", or "Help me elicit").
-**Description:** In the project workspace the student wants a single conversational entry point that helps her orient herself, understand where the team's requirements stand, find the right document or artifact, and reach the right specialized assistant for the task at hand. The project assistant is a router: it answers questions about project status and coverage, points the student to the relevant document section or use case, and routes her into the specialized assistants — for example launching a broad, project-wide elicitation session through UC-AI-elicit-requirements, a per-destination critique through UC-AI-critique, or a whole-project review through UC-AI-whole-project-review. Like every assistant it is deliberately Socratic and educational: it orients, explains, and routes, but never authors requirement content for her; authoring stays with the student through the normal use cases.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team.
-- PRE-3. The project assistant is enabled for the student's course section (see UC-CFG-toggle-assistants).
-
-**Postconditions:**
-- POST-1. The assistant conversation is recorded for the session.
-- POST-2. No requirement content is authored by the assistant; any work the student does happens through the authoring or assistant use cases the assistant routes her to.
-
-**Main Success Scenario:**
-1. The student opens the project assistant in the project workspace and asks a question about her project.
-2. The system gathers the project's current requirements coverage across its documents and sections, the imported project source material, and the course section's teaching context.
-3. The system asks the project assistant, via the LLM Service, to interpret the request and respond — answering about status or coverage, pointing to the relevant document or artifact, or recommending the specialized assistant or action that fits.
-4. The system presents the assistant's response and any recommended next actions to the student.
-5. The student follows a recommended action, and the system routes her into the corresponding use case (for example, UC-AI-elicit-requirements for elicitation or UC-AI-critique for a critique).
-6. The student continues the conversation (returns to step 1) or proceeds in the use case she was routed to.
-7. Use case ends.
-
-**Extensions:**
-- **3a. The project assistant is disabled for the course section**
-  - 3a1. The system informs the student that the assistant is unavailable and terminates the use case.
-- **3b. The LLM Service is unavailable or times out**
-  - 3b1. The system informs the student that AI assistance is temporarily unavailable and that the rest of RAM continues to operate, and terminates the use case.
-- **4a. The student asks the assistant to author or change requirement content**
-  - 4a1. Per its Socratic configuration, the system declines to author content and instead routes the student to the appropriate authoring use case (for example, UC-DOC-edit-document or UC-DOC-edit-use-case) or specialized assistant.
-- **5a. The recommended assistant is disabled for the course section**
-  - 5a1. The system tells the student the recommended assistant is unavailable and suggests an available alternative or action.
-
-**Priority:** High
-**Frequency of Use:** Frequent; a common entry point into the project workspace throughout the project.
-**Business Rules:** BR-assistant-enablement, BR-assistant-socratic — The project assistant shall be Socratic — it shall orient, explain, and route rather than author requirement content. The assistant must be enabled for the course section (UC-CFG-toggle-assistants). The system shall not author or modify student content with assistant-generated text without explicit confirmation. When routing the student into a specialized assistant, the system shall honor that assistant's own enablement and rules for the course section.
-**Associated Information:**
-- The assistant is a router over the specialized assistants; it invokes their use cases rather than duplicating their behavior — for example, broad, project-wide elicitation runs through UC-AI-elicit-requirements.
-- It draws on the project's current requirements coverage, the imported project source material, and the teaching context configured for the course section (UC-CFG-configure-teaching-context).
-- Educational intent: it lowers the cost of finding the right next step without doing the student's thinking for her; productivity is deliberately subordinate to learning.
-- All calls to the LLM Service are routed through the server-side AI proxy.
-- Honors FR-AI-no-auto-edit, FR-AI-enablement, FR-AI-degradation.
-
-**Related Use Cases:** UC-AI-elicit-requirements: Elicit requirements with the elicitation assistant; UC-AI-critique: Request a critique from the critique assistant; UC-AI-whole-project-review: Request a whole-project review from the critique assistant; UC-AI-tutor: Ask an assistant to explain a concept (Tutor Mode); UC-DOC-edit-document: Edit a section-based requirement document; UC-DOC-edit-use-case: Edit a use case; UC-CFG-configure-teaching-context: Configure the teaching context for a course section; UC-CFG-toggle-assistants: Enable or disable AI assistants for a course section.
-**Assumptions:**
-**Open Issues:**
-
-### **UC-AI-whole-project-review: The student requests a whole-project review from the critique assistant**
-
-**UC ID and Name:** UC-AI-whole-project-review: Request a whole-project review from the critique assistant
-**Created By:**
-**Date Created:**
-**Primary Actor:** student
-**Secondary Actors:** Critique assistant (realized via the LLM Service)
-**Trigger:** The student indicates to request a whole-project review of the team's requirement documents (via a "Review whole project" action, or routed in from the project assistant in UC-AI-consult-project-assistant).
-**Description:** The student wants the critique assistant to review the team's entire set of requirement documents together — not one selected document section or use case — so that she can find cross-document problems that are invisible when reviewing one item at a time: coverage gaps, inconsistencies, conflicts, and broken traceability across the documents. The review is qualitative, rationale-rich feedback that complements both the deterministic ReqLint validation (UC-VAL-run-validation) and the per-destination critique (UC-AI-critique). It is governed by the cross-document review criteria the instructor configures for the course section (UC-CFG-configure-review-criteria); the assistant's rationale is itself the lesson.
-
-**Preconditions:**
-- PRE-1. The student is logged into the system.
-- PRE-2. The student is a member of the team that owns the documents.
-- PRE-3. The critique assistant is enabled for the student's course section (see UC-CFG-toggle-assistants).
-- PRE-4. The cross-document review criteria are defined for the student's course section (see UC-CFG-configure-review-criteria).
-
-**Postconditions:**
-- POST-1. A whole-project review (cross-document findings with rationale) is generated and displayed, visually distinguished from student-authored content.
-- POST-2. No content is modified by the assistant.
-
-**Main Success Scenario:**
-1. The student indicates to request a whole-project review of the team's requirement documents.
-2. The system gathers the content of all the team's requirement documents, the relevant requirements-graph context for traceability, the course section's cross-document review criteria (UC-CFG-configure-review-criteria), and the teaching context (UC-CFG-configure-teaching-context).
-3. The system asks the critique assistant, via the LLM Service, to evaluate the documents together against the configured criteria.
-4. The critique assistant returns cross-document findings, each with a category (e.g., completeness, coverage and traceability, consistency, conflict), a location or set of locations, and an instructive rationale explaining why it weakens the requirements.
-5. The system presents the findings to the student, visually distinguished from authored content, each linked to the relevant document, document section, or use case.
-6. The student reviews a finding, navigates to the location, and revises the document section or use case herself through UC-DOC-edit-document: Edit a section-based requirement document (or UC-DOC-edit-use-case: Edit a use case).
-7. Use case ends.
-
-**Extensions:**
-- **1a. The cross-document review criteria are not defined for the course section**
-  - 1a1. The system informs the student that the whole-project review is unavailable until her instructor defines the criteria (UC-CFG-configure-review-criteria) and terminates the use case.
-- **3a. The critique assistant is disabled for the course section**
-  - 3a1. The system informs the student that the critique assistant is unavailable and terminates the use case.
-- **3b. The LLM Service is unavailable or times out**
-  - 3b1. The system informs the student that AI assistance is temporarily unavailable and that the rest of RAM continues to operate, and terminates the use case.
-- **4a. The critique assistant proposes a concrete rewrite for a finding**
-  - 4a1. The student reviews and accepts or rejects the proposed rewrite through UC-AI-review-proposal: Review and accept or reject an assistant proposal.
-
-**Priority:** High
-**Frequency of Use:** Periodic; typically at milestones and before submission.
-**Business Rules:** BR-assistant-socratic, BR-explicit-acceptance — Every finding shall include an instructive rationale. The critique assistant must be enabled for the course section (UC-CFG-toggle-assistants). The assistant shall not modify student-authored content without explicit confirmation (UC-AI-review-proposal). The review is advisory and distinct from ReqLint validation (UC-VAL-run-validation).
-**Associated Information:**
-- The whole-project review reads the team's entire set of requirement documents together (the document set may grow beyond the current five); it is the project-wide complement to the per-destination critique in UC-AI-critique and to the elicitation assistant's broad-mode gap analysis (UC-AI-elicit-requirements, extension 1a).
-- The dimensions and standards applied are the cross-document review criteria configured by the instructor for the course section (UC-CFG-configure-review-criteria); the review methodology and the system-provided default criteria set are maintained in `docs/product/cross-document-review-criteria.md`.
-- Requesting a whole-project review is read-only — it neither locks nor modifies any document. Acting on a finding changes content only through the normal path: a manual revision (UC-DOC-edit-document / UC-DOC-edit-use-case) or an accepted rewrite (extension 4a) via UC-AI-review-proposal, each subject to the affected item's lock.
-- Reachable directly (a "Review whole project" action) and via the project assistant (UC-AI-consult-project-assistant), which routes the student into this use case.
-- Honors FR-AI-rationale, FR-AI-no-auto-edit, FR-AI-degradation.
-
-**Related Use Cases:** UC-AI-critique: Request a critique from the critique assistant; UC-AI-consult-project-assistant: Consult the project assistant; UC-CFG-configure-review-criteria: Configure the cross-document review criteria for a course section; UC-VAL-run-validation: Run validation (ReqLint) on the current document; UC-AI-review-proposal: Review and accept or reject an assistant proposal; UC-DOC-edit-document: Edit a section-based requirement document; UC-DOC-edit-use-case: Edit a use case.
-**Assumptions:**
-**Open Issues:**

@@ -26,11 +26,17 @@ These business rules apply across Project Pulse. The course-administration rules
 # **Course Administration**
 
 - **BR-section-admin-only:** Only a course admin may create or edit a course section, configure its active-weeks window (per BR-active-weeks), or assign a rubric to it.
+
 - **BR-invitations-admin-only:** Only a course admin may invite students to a course section or invite instructors to register an account. Each invitation is delivered by email with a registration link unique to the invitee.
+
 - **BR-account-self-setup:** A student or instructor sets up her own account by using the unique registration link from her invitation email; the system permits self-setup only against an unconsumed invitation.
+
 - **BR-team-admin-only:** Only a course admin may create, edit, or delete a team within a course section, and only a course admin may assign students or instructors to a team or remove them from one. The single-instructor cardinality per team is governed by BR-team-single-instructor.
+
 - **BR-student-lifecycle:** A course admin, or an instructor assigned to the student's course section, may deactivate or reactivate a student — deactivation revokes the student's access while preserving her submitted work. Only a course admin may delete a student; deletion is physical and unrecoverable and also removes the student's weekly activity reports and peer evaluations.
+
 - **BR-instructor-lifecycle:** Only a course admin may deactivate or reactivate an instructor; deactivation revokes the instructor's access while retaining her record.
+
 - **BR-rubric-admin-only:** Only a course admin may create, edit, or delete a rubric or its criteria.
 
 # **Teams and Instructor Assignment**
@@ -40,45 +46,71 @@ These business rules apply across Project Pulse. The course-administration rules
 # **Weekly Activity Report and Peer Evaluation**
 
 - **BR-active-weeks:** A student may submit a peer evaluation only for a week that is one of her course section's active weeks; combined with the previous-week rule (BR-evaluation-submission-window), each active week is evaluated during the *following* calendar week — so the first active week is evaluated in the second active week, and the last active week is evaluated in the week after the active window closes (which need not itself be active). The gate is on the evaluated week being active, not on the date of submission. A weekly activity report, by contrast, may be submitted regardless of the active-weeks window. A course section's active weeks are configured per section by its course admin (BR-section-admin-only, UC-SEC-setup-active-weeks).
-    - *Active-weeks guidance (instructor reference, not enforced by the system): fall sections usually run weeks 5 through 15 of the semester (winter holidays inactive) and spring sections weeks 1 through 15. The enforced window is whatever the course admin configures per section.*
+
+\- *\*Active-weeks guidance (instructor reference, not enforced by the system): fall sections usually run weeks 5 through 15 of the semester (winter holidays inactive) and spring sections weeks 1 through 15. The enforced window is whatever the course admin configures per section.\**
+
 - **BR-team-assignment-required:** Only a student authors a weekly activity report or a peer evaluation, and only once she is assigned to a team. A student enrolls in a course section before she is assigned to a team, so until that assignment she has no team whose work she could report on and no teammates she could evaluate, and she may not submit either record. The rule governs authoring only. What she may read is governed by BR-team-scoped-access and, for peer evaluations, by BR-evaluation-visibility: a student on no team reads an empty report rather than a refusal, and a student removed from a team still reads the peer evaluations her teammates wrote of her while she was on it. An instructor or course admin does not author them at all; she reads the records of the course sections she is assigned to or owns, per BR-section-scoped-access. A submission that fails either condition is rejected by naming the unmet condition, not as a permission refusal.
+
 - **BR-evaluation-editable-until-close:** A peer evaluation remains editable by its evaluator while its submission window is open — re-submitting updates the existing evaluation in place. The system applies no separate finalize or completion action; the close of the submission window (BR-evaluation-submission-window) is itself the lock that makes the evaluation read-only.
+
 - **BR-evaluation-submission-window:** A student may submit a peer evaluation only for the previous week, and has that one week to complete it; both the initial submission and any later edits must occur within this window. A student who fails to complete a peer evaluation in that window cannot make it up, and an evaluation can no longer be changed once its window has closed.
+
 - **BR-evaluation-private-comment:** When submitting a peer evaluation, the evaluator may optionally include a private comment about the teammate being evaluated. A private comment is visible only to the instructor assigned to the course section (and course admin, per BR-role-based-access); it is never shown to the evaluatee or any other student on the team. Private comments exist to give students a safe channel to raise concerns early.
+
 - **BR-evaluation-visibility:** For a peer evaluation, a student may see only her own rubric criterion scores, public comments (not private comments — see BR-evaluation-private-comment), and overall grade.
+
+- **BR-nudge-non-submitter:** For a selected weekly activity report or peer evaluation and week, a student is a non-submitter when the system has no submitted record for that student, artifact, and week; drafts, incomplete records, and other records that have not been submitted do not count as submissions. A reminder may be sent only when the selected artifact can still be submitted under its applicable submission rules. A weekly activity report or peer evaluation is required only for a week configured as an active week for the course section (BR-active-weeks). A student must be active and currently assigned to a team to receive a reminder because BR-student-lifecycle revokes access for deactivated students and BR-team-assignment-required prevents an unassigned student from submitting either artifact. For peer evaluations, BR-evaluation-submission-window applies. A weekly activity report may be submitted for the current week and any completed week, but a future week cannot be selected for WAR activity management. If a previously submitted record no longer exists, the student is again treated as a non-submitter. Multiple instructor-initiated reminders for the same student, artifact, and week are permitted; the system does not suppress duplicate manual reminders. Instructor-initiated reminders do not suppress or replace scheduled reminders; scheduled reminders use the same non-submitter eligibility rule. The reminder shall identify the course section, selected weekly artifact, and selected week, and shall direct the student to complete the required submission in Project Pulse. Week boundaries for reminder eligibility shall use the course section's configured week definitions and the system's configured time zone.
 
 # **Access and Ownership**
 
 - **BR-team-scoped-access:** A team is the ownership boundary for all student work. A student may access team-owned work only within a team she belongs to; she may not access another team's requirements graph, documents, project source material, weekly activity reports, or peer evaluations. Team membership is a necessary condition, not a sufficient one: what a student may do with a given kind of work inside her own team is governed by the rule for that kind of work (peer evaluations are narrowed to her own results by BR-evaluation-visibility and BR-evaluation-private-comment, while requirement content and her team's weekly activity reports are hers to reach throughout the team). (This is the default "Security/access concerns" rule cited by the authoring use cases.)
+
 - **BR-section-scoped-access:** A course section is the ownership boundary for instructor access. An instructor may access the student work, teams, and configuration only of the course sections she is assigned to, and a course admin only of the course sections belonging to the courses she owns. Within such a course section she reaches every team's work: the team boundary of BR-team-scoped-access constrains students, not instructors.
+
 - **BR-role-based-access:** The system enforces role-based access control across the course admin, instructor, and student roles; each operation is permitted only for the roles authorized for it. A course admin is also an instructor of her course and holds every instructor capability in addition to her course-ownership privileges.
+
 - **BR-document-creation:** Only a course admin may create a team's requirement documents, and each document type is created at most once per team — an existing document cannot be regenerated or overwritten.
+
 - **BR-section-config-access:** Only an instructor assigned to a course section may view or edit that course section's teaching context, per-assistant assistant instructions, and cross-document review criteria, and may enable or disable its AI assistants.
 
 # **Identity and Uniqueness**
 
 - **BR-artifact-key-unique:** Every artifact key is unique within a team and remains stable across edits to the artifact's content.
+
 - **BR-glossary-term-unique:** A glossary term name is unique within a team's glossary, so each term carries a single authoritative definition.
+
 - **BR-use-case-name-unique:** A use case name is unique within a team's Use Cases document.
+
 - **BR-link-constraints:** A requirement link is unique on the combination of (source artifact, target artifact, link type); an artifact may not link to itself; and a link type is permitted only between artifact types for which it is defined (see the link-type compatibility matrix below).
 
 **Link-type compatibility matrix (BR-link-constraints).** Each link is read source → target, and no artifact may link to itself. The matrix classifies *requirement* artifact types into four abstraction tiers, plus a set of *cross-cutting* artifact types:
 
 - Tier 1 — Business/Vision: Business Problem, Business Opportunity, Business Objective, Vision Statement, Success Metric
+
 - Tier 2 — Feature: Feature
+
 - Tier 3 — Behavioral: Use Case, User Story
+
 - Tier 4 — Detailed/system: Functional Requirement, Quality Attribute, External Interface Requirement, Constraint, Data Requirement, Operating Environment
+
 - Cross-cutting: Stakeholder, Risk, Assumption, Dependency, Business Rule, glossary term
 
 A lower tier number is a higher level of abstraction (Tier 1 is the highest). The permitted source → target combinations per link type are:
 
 | Link type | Permitted source → target | Direction rule |
+
 | ---- | ---- | ---- |
+
 | DERIVES_FROM | A Tier 1–4 requirement artifact → a Tier 1–4 requirement artifact | Source tier number ≥ target tier number (a link must not point from a higher-level artifact down to a lower-level one); same-tier decomposition is allowed. Use DERIVES_FROM when the source was decomposed/derived from the target. |
+
 | REALIZES | A Tier 2–4 requirement artifact → a Tier 1–4 requirement artifact | Same tier-direction constraint as DERIVES_FROM. Use REALIZES when the source fulfills or satisfies the target rather than being decomposed from it (e.g., use case → Feature, Feature → Business Objective). A future release adds design/implementation artifacts as sources → Tier 4 targets. |
+
 | REFERENCES | Any artifact → any artifact | The general-purpose catch-all; no tier constraint. Use it (and only it) when an endpoint is a glossary term, or when no more specific link type applies. |
+
 | IMPACTS | Quality Attribute, Constraint, Business Rule, Risk, or Dependency → any requirement artifact | Source is a cross-cutting or constraining artifact whose change or presence affects the target. |
+
 | MITIGATES | Functional Requirement, Quality Attribute, Constraint, Business Rule, use case, or Feature → a Risk | Target must be a Risk (any category — business, technical, or security/safety). |
+
 | MOTIVATES | Stakeholder, Business Problem, or Business Opportunity → any requirement artifact | Source expresses a need or driver that motivates the target. |
 
 The artifact types named here are the canonical `RequirementArtifactType` set (glossary ↔ the SRS's Business Domain Model enum) — the **product's student-facing taxonomy** for typing artifacts in a team's own requirements graph, **not** this spec's own requirement-class/ID inventory (the two share names but are different lists; see the `RequirementArtifactType` note in the SRS's Business Domain Model). Stakeholder and Dependency are tracked artifact types. User stories are a deferred type (see the SRS's Business Domain Model); a User Story, when present, is a Tier 3 behavioral artifact.
@@ -86,7 +118,9 @@ The artifact types named here are the canonical `RequirementArtifactType` set (g
 # **Editing and Locking**
 
 - **BR-edit-lock-required:** Editing a document section or a use case requires an exclusive lock on that authoring destination, held by the editing student; at most one student may hold a given lock at a time.
+
 - **BR-lock-expiry:** An edit lock expires a configurable interval after it is acquired (default 15 minutes) and is then released automatically, freeing the authoring destination for another student; an expired lock is cleared the next time the destination is read or a lock on it is requested.
+
 - **BR-collab-no-overwrite:** Real-time collaboration shall not overwrite or corrupt content already saved by another collaborator.
 
 # **Deletion Integrity**
@@ -96,13 +130,17 @@ The artifact types named here are the canonical `RequirementArtifactType` set (g
 # **Review and Submission**
 
 - **BR-review-lock:** On submission for review, a requirement document is locked for review and becomes read-only to all students on the team until an instructor returns it for revision.
+
 - **BR-review-authority:** Only an instructor assigned to the course section may review, accept, or return that team's submitted documents; returning a document for revision unlocks it for student editing.
 
 # **AI Assistants**
 
 - **BR-assistant-enablement:** An AI assistant is available to a course section's students only while the instructor has enabled it for that course section. The drafting assistant is disabled by default.
+
 - **BR-assistant-socratic:** Assistants are Socratic: they ask, critique, explain, structure, and route, but never author or silently insert finished requirement content on a student's behalf.
+
 - **BR-explicit-acceptance:** Assistant-proposed content is applied only through explicit, per-item acceptance by the student; the system provides no "accept all" shortcut, and every finding or proposal carries an instructive rationale.
+
 - **BR-authored-prevails:** Where a team's authored-and-verified requirements conflict with its imported project source material, the authored content prevails; an assistant shall not treat the (possibly stale) pitch materials as authoritative over current verified requirements.
 
 # **Project Source Material**

@@ -2432,12 +2432,23 @@ Details of a peer evaluation: The instructor may choose to see more details of o
 9. Use case ends.
 
 **Extensions:**
-- **6a. Input validation rule violation:**
-  - 6a1. The system alerts the instructor that an input validation rule is violated and displays the nature and location of the error.
-  - 6a2. The instructor corrects the mistake and returns to step 6 of the normal flow.
-- **7a. No data is returned:**
-  - 7a1. The system alerts the instructor that no data is available in the generated report.
-  - 7a2. The instructor either chooses to return to step 5 of the normal flow or chooses to terminate the use case.
+- **6a. The instructor cancels the reminder:**
+  - 6a1. The system does not send the reminder.
+  - 6a2. Use case ends.
+
+- **7a. The student submits the selected required weekly artifact after the eligibility check but before the reminder is sent:**
+  - 7a1. The system re-checks whether the student has submitted the selected required weekly artifact.
+  - 7a2. The system does not send the reminder and informs the instructor that the student has already submitted the required weekly artifact.
+  - 7a3. Use case ends.
+
+- **7b. The reminder cannot be sent or the delivery result is unknown:**
+  - 7b1. The system informs the instructor that the reminder could not be confirmed as sent.
+  - 7b2. The system does not report the reminder as successfully sent.
+  - 7b3. Use case ends.
+
+  - **7c. The selected student does not have a valid registered email address or the student's account is unavailable:**
+  - 7c1. The system does not send the reminder and informs the instructor that the reminder cannot be sent to the selected student.
+  - 7c2. Use case ends.
 
 **Priority:** High
 **Frequency of Use:** 2 users, average of 10 usage per week.
